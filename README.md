@@ -6,7 +6,7 @@ EncryptedSession provides a simple drop-in replacement for the default Flask ses
 
 # Limitations
 
-* Currently EncryptedSession only handles simple session variable types which are serializable using Python's JSON encoder. If you need to store binary data in your session then you will have to encode and decode the data in your application when reading or writing the session object.
+* Currently EncryptedSession only handles simple session variable types which are serializable using Python's JSON encoder, and the `bytes` type. If you need to store other types in your session then you will have to serialize/deserialize to/from string or bytes when reading or writing the session object.
 
 # Why use EncryptedSession rather than server-side session storage ?
 
