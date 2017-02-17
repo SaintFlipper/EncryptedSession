@@ -1,5 +1,7 @@
 
 import random
+from datetime import datetime, timezone
+
 from flask import Flask, render_template, session, request
 from encrypted_session import EncryptedSessionInterface
 
@@ -20,6 +22,7 @@ app.session_interface = EncryptedSessionInterface()
 def root():
     r = random.randint (1,10)
     session['randint'] = r
+    session['bindata'] = b'\x01\x02\x03\x04\x05\x06\x07\x08\x09\x0A\x0B\x0C\x0D\x0E\x0F'
     
     return render_template ('test_form.html')
 

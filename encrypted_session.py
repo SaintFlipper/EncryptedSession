@@ -4,6 +4,7 @@ from flask.sessions import SessionInterface, SessionMixin
 
 from Crypto.Cipher import AES
 import json
+from json import JSONEncoder, JSONDecoder
 import base64
 import zlib
 
@@ -58,7 +59,7 @@ class EncryptedSessionInterface(SessionInterface):
             # Convert back to a dict and pass that onto the session
             if is_compressed:
                 data = zlib.decompress (data)
-            session_dict = json.loads (str (data, 'utf-8'))
+            session_dict = json.loads (str (data, 'utf-8'), cls=BinaryAwareJSONDecoder)
 
             return self.session_class (session_dict)
 
@@ -82,7 +83,7 @@ class EncryptedSessionInterface(SessionInterface):
         expires = self.get_expiration_time(app, session)
 
         # Decide whether to compress
-        bdict = bytes (json.dumps (dict (session)), 'utf-8')
+        bdict = bytes (json.dumps (dict (session), cls=BinaryAwareJSONEncoder), 'utf-8')
         if (len (bdict) > self.compress_threshold):
             prefix = "z"                                    # session cookie for compressed data starts with "z."
             bdict = zlib.compress (bdict)
@@ -108,3 +109,39 @@ class EncryptedSessionInterface(SessionInterface):
                             expires=expires, httponly=True,
                             domain=domain)
 
+
+class BinaryAwareJSONEncoder(JSONEncoder):
+    """ 
+    Converts a python object, where binary data is converted into an object
+    that can be decoded using the BinaryAwareJSONDecoder.
+    """
+    def default(self, obj):
+        if isinstance(obj, bytes):
+            return {
+                '__type__' : 'bytes',
+                'b' : base64.b64encode (obj).decode ()
+            }   
+
+        else:
+            return JSONEncoder.default(self, obj)
+
+class BinaryAwareJSONDecoder(JSONDecoder):
+    """ 
+    Converts a json string, where binary data was converted into objects form
+    using the BinaryAwareJSONEncoder, back into a python object.
+    """
+
+    def __init__(self):
+            JSONDecoder.__init__(self, object_hook=self.dict_to_object)
+
+    def dict_to_object(self, d): 
+        if '__type__' not in d:
+            return d
+
+        typ = d.pop('__type__')
+        if typ == 'bytes':
+            return base64.b64decode (bytes (d['b'], 'utf-8'))
+        else:
+            # Oops... better put this back together.
+            d['__type__'] = typ
+            return d
