@@ -13,7 +13,7 @@ app = Flask(__name__)
 # key = get_random_bytes(32)
 # print (key)
 
-app.crypto_key = b'\xcb\xf2\x19H\xd9l\x05\xc7j\xb2\xd0^}B*\x8d\xb6\x8aPd\x1c%\x83\x1e_\xf0\xb9C\xa9XOC'
+app.config['SESSION_CRYPTO_KEY'] = b'\xcb\xf2\x19H\xd9l\x05\xc7j\xb2\xd0^}B*\x8d\xb6\x8aPd\x1c%\x83\x1e_\xf0\xb9C\xa9XOC'
 
 # Replace default session implementation
 app.session_interface = EncryptedSessionInterface()

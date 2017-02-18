@@ -34,6 +34,9 @@ class EncryptedSessionInterface(SessionInterface):
         if not session_cookie:
             return self.session_class()
 
+        # Get the crypto key
+        crypto_key = app.config['SESSION_CRYPTO_KEY'] if 'SESSION_CRYPTO_KEY' in app.config else app.crypto_key
+
         # Split the session cookie : <z|u>.<base64 cipher text>.<base64 mac>.<base64 nonce>
         itup = session_cookie.split(".")
         if (len (itup) is not 4):
@@ -53,7 +56,7 @@ class EncryptedSessionInterface(SessionInterface):
             nonce = base64.b64decode (bytes(itup[3], 'utf-8'))
 
             # Decrypt
-            cipher = AES.new (app.crypto_key, AES.MODE_EAX, nonce)
+            cipher = AES.new (crypto_key, AES.MODE_EAX, nonce)
             data = cipher.decrypt_and_verify (ciphertext, mac)
 
             # Convert back to a dict and pass that onto the session
@@ -90,8 +93,11 @@ class EncryptedSessionInterface(SessionInterface):
         else:
             prefix = "u"                                    # session cookie for uncompressed data starts with "u."
 
+        # Get the crypto key
+        crypto_key = app.config['SESSION_CRYPTO_KEY'] if 'SESSION_CRYPTO_KEY' in app.config else app.crypto_key
+
         # Encrypt using AES in EAX mode
-        cipher = AES.new (app.crypto_key, AES.MODE_EAX)
+        cipher = AES.new (crypto_key, AES.MODE_EAX)
         ciphertext, mac = cipher.encrypt_and_digest (bdict)
         nonce = cipher.nonce
 
