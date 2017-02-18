@@ -57,11 +57,15 @@ which will print a Python `bytes` which can be cut&pasted as your `crypto_key` v
 
 ### Store the encryption key against the Flask app
 
-For example:
+The class first looks for the encryption key in the Flask app configuration under SESSION_CRYPTO_KEY:
+
+`app.config['SESSION_CRYPTO_KEY'] = b'\x8e;\xa9=\x11\xf7\r\xf9\x8d\x8a?\x1fM\xac\x94\xa8\xa2F]\x91s#Q\x07\x06\x99\xf2B\xab\x0c9S'`
+
+and falls back to app.crypto_key if the key is not in the app configuration:
 
 `app.crypto_key = b'\x8e;\xa9=\x11\xf7\r\xf9\x8d\x8a?\x1fM\xac\x94\xa8\xa2F]\x91s#Q\x07\x06\x99\xf2B\xab\x0c9S'`
 
-Note that the default Flask cookie implementation uses `app.secret_key` for the signing key. EncryptedSession does not reuse `secret_key`, to make it easier to switch between implementations.
+Note that EncryptedSession does not reuse the default session configuration properties `app.config['SECRET_KEY']` and `app.secret_key`. This is to make it easier to switch between session cookie implementations.
 
 ### Tell Flask to use the EncryptedSession implementation
 
