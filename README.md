@@ -22,6 +22,11 @@ Firstly because of the insecurity of passing session data around in cookies, par
 
 Secondly because the session cookie increases the size of each HTTP request and response. How much depends on the size and nature of the session data, but if your application stores large data types in the session then passing that data across the network with every request is a very bad idea and server-side session storage is a much better option. However, for an application which stores a moderate amount of textual data the overhead of the session cookie may be acceptable.
 
+*Update Dec 2018 - "session replay" security risk*
+An additional security risk of putting the session data in the session cookie is the danger of "session replay" attacks. If a valid session cookie is captured from a user's browser (it's visible in the browser's developer console) then that cookie can be copied to another machine and used in a rogue session at any time. Note that it does not help or mitigate this risk to clear the Flask session with session.clear(). That will return an empty session cookie in the response returned to the current user's browser, but the captured session cookie will still be valid as far as the server is concerned. In the traditional session model clearing a session will clear the session data on the server; a rogue party may have captured the session ID (key) from the browser, but it will be invalid as there is no corresponding server side session. However in the default Flask session model there is nothing on the server to delete or clear - the session data is all encapsulated in the session cookie.
+
+Because of the above risk it is recommended that systems based on Flask which put sensitive information in the session should use something like Flask-FVSession instead, which allows the session data to be maintained on the server in a variety of key-value store types (Redis, Memcached, SQL database, simple file, and others).
+
 ## Installation
 
 EncryptedSession depends on PyCryptodome, so install that package for Python first:
